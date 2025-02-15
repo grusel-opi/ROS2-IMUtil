@@ -11,15 +11,17 @@ class IMUSub(Node):
         super().__init__('imu_subscriber')
         self.topic = "/oakd/imu/data"
         self.counter = 0
-        self.num_msgs = 100
-        self.data = []
+        self.CA = 0
         self.subscription = self.create_subscription(Imu, self.topic, self.listener_callback, 10)
         self.subscription
 
     def listener_callback(self, msg):     
         accel = np.array([msg.linear_acceleration.x, msg.linear_acceleration.z])
         accel = accel / np.sqrt(accel[0]**2 + accel[1]**2)
-        print(f"{math.asin(np.dot(accel, np.array([0, -1]))) * 180 / math.pi}", end="\r")
+        angle = math.asin(np.dot(accel, np.array([0, -1]))) * 180 / math.pi
+        self.counter += 1
+        self.CA = self.CA + (angle - self.CA) / self.counter
+        print(f"{self.CA}", end="\r")
 
 
 def main(args=None):
